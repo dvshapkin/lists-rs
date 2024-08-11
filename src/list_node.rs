@@ -21,6 +21,10 @@ impl<T> HasChild for Node<T> {
     fn add_child(&mut self, other: Self) {
         self.next = &other;
     }
+
+    fn add_child_by_addr(&mut self, addr: *const Self) {
+        self.next = addr;
+    }
 }
 
 impl<T: PartialEq> PartialEq for Node<T> {
@@ -53,7 +57,7 @@ mod tests {
     }
 
     #[test]
-    fn node_add_child() {
+    fn node_add_child_on_stack() {
         let mut first = Node::new("first");
         let second = Node::new("second");
 
@@ -67,6 +71,23 @@ mod tests {
         assert_eq!(first.next, second_addr);
         unsafe {
             assert_eq!(*first.next, *second_addr);
+        }
+    }
+
+    #[test]
+    fn node_add_child_on_heap() {
+        let mut first = Node::new("first");
+        let second_box = Box::new(Node::new("second"));
+
+        assert_eq!(first.value, "first");
+        assert_eq!(second_box.value, "second");
+        assert_ne!(first, *second_box);
+
+        first.add_child_by_addr(second_box.as_ref());
+
+        assert_eq!(first.next, second_box.as_ref());
+        unsafe {
+            assert_eq!(*first.next, *second_box);
         }
     }
 
