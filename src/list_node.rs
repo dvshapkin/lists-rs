@@ -1,4 +1,3 @@
-use crate::common::HasChild;
 use std::cmp::Ordering;
 use std::ptr;
 
@@ -9,20 +8,18 @@ pub struct Node<T> {
 }
 
 impl<T> Node<T> {
-    pub fn new(value: T) -> Node<T> {
+    pub fn new(value: T) -> Self {
         Node {
             value,
             next: ptr::null(),
         }
     }
-}
 
-impl<T> HasChild for Node<T> {
-    fn add_child(&mut self, other: Self) {
+    fn add_next(&mut self, other: Self) {
         self.next = &other;
     }
 
-    fn add_child_by_addr(&mut self, addr: *const Self) {
+    fn add_next_by_addr(&mut self, addr: *const Self) {
         self.next = addr;
     }
 }
@@ -66,7 +63,7 @@ mod tests {
         assert_ne!(first, second);
 
         let second_addr = &second as *const Node<&str>;
-        first.add_child(second);
+        first.add_next(second);
 
         assert_eq!(first.next, second_addr);
         unsafe {
@@ -83,7 +80,7 @@ mod tests {
         assert_eq!(second_box.value, "second");
         assert_ne!(first, *second_box);
 
-        first.add_child_by_addr(second_box.as_ref());
+        first.add_next_by_addr(second_box.as_ref());
 
         assert_eq!(first.next, second_box.as_ref());
         unsafe {
