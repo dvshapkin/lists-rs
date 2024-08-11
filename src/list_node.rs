@@ -4,23 +4,15 @@ use std::ptr;
 #[derive(Debug, Clone)]
 pub struct Node<T> {
     pub value: T,
-    next: *const Node<T>,
+    pub next: *mut Node<T>,
 }
 
 impl<T> Node<T> {
     pub fn new(value: T) -> Self {
         Node {
             value,
-            next: ptr::null(),
+            next: ptr::null_mut(),
         }
-    }
-
-    fn add_next(&mut self, other: Self) {
-        self.next = &other;
-    }
-
-    fn add_next_by_addr(&mut self, addr: *const Self) {
-        self.next = addr;
     }
 }
 
@@ -51,41 +43,6 @@ mod tests {
 
         assert_eq!(node.value, 777);
         assert!(node.next.is_null());
-    }
-
-    #[test]
-    fn node_add_child_on_stack() {
-        let mut first = Node::new("first");
-        let second = Node::new("second");
-
-        assert_eq!(first.value, "first");
-        assert_eq!(second.value, "second");
-        assert_ne!(first, second);
-
-        let second_addr = &second as *const Node<&str>;
-        first.add_next(second);
-
-        assert_eq!(first.next, second_addr);
-        unsafe {
-            assert_eq!(*first.next, *second_addr);
-        }
-    }
-
-    #[test]
-    fn node_add_child_on_heap() {
-        let mut first = Node::new("first");
-        let second_box = Box::new(Node::new("second"));
-
-        assert_eq!(first.value, "first");
-        assert_eq!(second_box.value, "second");
-        assert_ne!(first, *second_box);
-
-        first.add_next_by_addr(second_box.as_ref());
-
-        assert_eq!(first.next, second_box.as_ref());
-        unsafe {
-            assert_eq!(*first.next, *second_box);
-        }
     }
 
     #[test]
