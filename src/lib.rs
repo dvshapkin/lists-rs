@@ -5,7 +5,7 @@ use std::ptr;
 use list_node::Node;
 
 pub struct List<T> {
-    head: *const Node<T>,
+    head: *mut Node<T>,
     last: *mut Node<T>,
     size: usize
 }
@@ -13,7 +13,7 @@ pub struct List<T> {
 impl<T> List<T> {
     pub fn new() -> List<T> {
         List {
-            head: ptr::null(),
+            head: ptr::null_mut(),
             last: ptr::null_mut(),
             size: 0
         }
@@ -50,6 +50,27 @@ impl<T> List<T> {
         ptr::write(p_node, Node::new(value));
         p_node
     }
+
+    fn remove_first(&mut self) {
+        if !self.is_empty() {
+            let p_node = self.head;
+            unsafe {
+                self.head = (*self.head).next;
+                alloc::dealloc(p_node as *mut u8, alloc::Layout::new::<Node<T>>());
+            }
+            self.size -= 1;
+            //todo!("Drop data of reference types")
+        }
+    }
+}
+
+impl<T> Drop for List<T> {
+    fn drop(&mut self) {
+        while !self.is_empty() {
+            self.remove_first();
+        }
+        self.last = ptr::null_mut();
+    }
 }
 
 #[cfg(test)]
@@ -81,5 +102,24 @@ mod tests {
             assert_eq!((*(*list.head).next).value, 2);
             assert_eq!((*list.last).value, 3);
         }
+    }
+
+    #[test]
+    fn list_drop() {
+        let mut list = List::new();
+        list.append(1);
+        list.append(2);
+        list.append(3);
+
+        assert_eq!(list.len(), 3);
+
+        list.remove_first();
+        assert_eq!(list.len(), 2);
+        list.remove_first();
+        assert_eq!(list.len(), 1);
+        list.remove_first();
+        assert_eq!(list.len(), 0);
+
+        assert!(list.head.is_null());
     }
 }
