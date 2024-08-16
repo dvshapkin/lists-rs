@@ -43,6 +43,17 @@ impl<T> List<T> {
         self.size += 1;
     }
 
+    pub fn pop_front(&mut self) {
+        if !self.is_empty() {
+            let p_node = self.head;
+            unsafe {
+                self.head = (*self.head).next;
+                let _ = Box::from_raw(p_node);
+            }
+            self.size -= 1;
+        }
+    }
+
     unsafe fn allocate(value: T) -> *mut Node<T> {
         let layout = alloc::Layout::new::<Node<T>>();
         let p_node= alloc::alloc(layout) as *mut Node<T>;
@@ -50,24 +61,12 @@ impl<T> List<T> {
         ptr::write(p_node, Node::new(value));
         p_node
     }
-
-    fn remove_first(&mut self) {
-        if !self.is_empty() {
-            let p_node = self.head;
-            unsafe {
-                self.head = (*self.head).next;
-                alloc::dealloc(p_node as *mut u8, alloc::Layout::new::<Node<T>>());
-            }
-            self.size -= 1;
-            //todo!("Drop data of reference types")
-        }
-    }
 }
 
 impl<T> Drop for List<T> {
     fn drop(&mut self) {
         while !self.is_empty() {
-            self.remove_first();
+            self.pop_front();
         }
         self.last = ptr::null_mut();
     }
@@ -113,11 +112,11 @@ mod tests {
 
         assert_eq!(list.len(), 3);
 
-        list.remove_first();
+        list.pop_front();
         assert_eq!(list.len(), 2);
-        list.remove_first();
+        list.pop_front();
         assert_eq!(list.len(), 1);
-        list.remove_first();
+        list.pop_front();
         assert_eq!(list.len(), 0);
 
         assert!(list.head.is_null());
