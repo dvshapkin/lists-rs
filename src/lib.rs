@@ -142,18 +142,10 @@ impl<T> List<T> {
         Some(p_node.value)
     }
 
-    pub fn append(&mut self, value: T) {
-        // let p_node = unsafe { Self::allocate(value) };
-        // if self.head.is_null() {
-        //     self.head = p_node;
-        //     self.last = p_node;
-        // } else {
-        //     unsafe {
-        //         (*(self.last)).next = p_node;
-        //         self.last = p_node;
-        //     }
-        // }
-        // self.size += 1;
+    pub fn append(&mut self, values: Vec<T>) {
+        for value in values {
+            self.push_back(value);
+        }
     }
 
     fn get_node(&self, index: usize) -> *mut Node<T> {
@@ -182,14 +174,6 @@ impl<T> Drop for List<T> {
         self.clear();
     }
 }
-
-// impl<T> Iterator for List<T> {
-//     type Item = T;
-//
-//     fn next(&mut self) -> Option<Self::Item> {
-//         todo!()
-//     }
-// }
 
 #[cfg(test)]
 mod tests {
@@ -351,6 +335,16 @@ mod tests {
         assert_eq!(list.back(), None);
 
         assert_eq!(list.pop_back(), None);
+    }
+
+    #[test]
+    fn list_append() {
+        let mut list = List::new();
+        list.append(vec![1, 2, 3]);
+
+        assert_eq!(list.len(), 3);
+        assert_eq!(list.front(), Some(&1));
+        assert_eq!(list.back(), Some(&3));
     }
 
     #[test]
