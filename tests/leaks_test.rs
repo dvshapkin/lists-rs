@@ -1,4 +1,5 @@
 use lists::List;
+
 #[test]
 fn leaks_check() {
     let mut list = List::new();

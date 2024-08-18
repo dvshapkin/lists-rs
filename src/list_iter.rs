@@ -30,7 +30,7 @@ impl<'a, T> Iterator for ListIterator<'a, T> {
         self.idx += 1;
         unsafe {
             if self.curr.is_null() {
-                self.curr = self.list.head;
+                self.curr = self.list.first;
             } else {
                 self.curr = (*self.curr).next;
             }

@@ -1,14 +1,16 @@
+use std::ptr;
+
+use list_iter::ListIterator;
+use list_node::Node;
+
+use crate::node_iter::NodeIterator;
+
 mod list_node;
 mod list_iter;
 mod node_iter;
 
-use list_node::Node;
-use std::ptr;
-use list_iter::ListIterator;
-use crate::node_iter::NodeIterator;
-
 pub struct List<T> {
-    head: *mut Node<T>,
+    first: *mut Node<T>,
     last: *mut Node<T>,
     size: usize,
 }
@@ -16,7 +18,7 @@ pub struct List<T> {
 impl<T> List<T> {
     pub fn new() -> List<T> {
         List {
-            head: ptr::null_mut(),
+            first: ptr::null_mut(),
             last: ptr::null_mut(),
             size: 0,
         }
@@ -31,10 +33,10 @@ impl<T> List<T> {
     }
 
     pub fn front(&self) -> Option<&T> {
-        if self.head.is_null() {
+        if self.first.is_null() {
             None
         } else {
-            unsafe { Some(&(*self.head).value) }
+            unsafe { Some(&(*self.first).value) }
         }
     }
 
@@ -44,6 +46,18 @@ impl<T> List<T> {
         } else {
             unsafe { Some(&(*self.last).value) }
         }
+    }
+
+    pub fn clear(&mut self) {
+        while !self.first.is_null() {       // self.is_empty()
+            let p_node = self.first;
+            unsafe {
+                self.first = (*self.first).next;
+                let _ = Box::from_raw(p_node);
+            }
+        }
+        self.last = ptr::null_mut();
+        self.size = 0;
     }
 
     pub fn iter(&self) -> ListIterator<T> {
@@ -69,8 +83,8 @@ impl<T> List<T> {
 
     pub fn push_back(&mut self, value: T) {
         let p_node = Box::into_raw(Box::new(Node::new(value)));
-        if self.head.is_null() {
-            self.head = p_node;
+        if self.first.is_null() {
+            self.first = p_node;
         } else {
             unsafe {
                 (*(self.last)).next = p_node;
@@ -82,14 +96,14 @@ impl<T> List<T> {
 
     pub fn push_front(&mut self, value: T) {
         let p_node = Box::into_raw(Box::new(Node::new(value)));
-        if self.head.is_null() {
+        if self.first.is_null() {
             self.last = p_node;
         } else {
             unsafe {
-                (*p_node).next = self.head;
+                (*p_node).next = self.first;
             }
         }
-        self.head = p_node;
+        self.first = p_node;
         self.size += 1;
     }
 
@@ -97,9 +111,9 @@ impl<T> List<T> {
         if self.is_empty() {
             return None;
         }
-        let p_node = self.head;
+        let p_node = self.first;
         unsafe {
-            self.head = (*self.head).next;
+            self.first = (*self.first).next;
             self.size -= 1;
             if self.is_empty() {
                 self.last = ptr::null_mut();
@@ -116,9 +130,14 @@ impl<T> List<T> {
             Box::from_raw(self.last)
         };
         self.last = self.pre_last();
+        unsafe {
+            if !self.last.is_null() {
+                (*(self.last)).next = ptr::null_mut();
+            }
+        }
         self.size -= 1;
         if self.is_empty() {
-            self.head = ptr::null_mut();
+            self.first = ptr::null_mut();
         }
         Some(p_node.value)
     }
@@ -160,15 +179,7 @@ impl<T> List<T> {
 
 impl<T> Drop for List<T> {
     fn drop(&mut self) {
-        while !self.is_empty() {
-            let p_node = self.head;
-            unsafe {
-                self.head = (*self.head).next;
-                let _ = Box::from_raw(p_node);
-            }
-            self.size -= 1;
-        }
-        //self.last = ptr::null_mut();
+        self.clear();
     }
 }
 
@@ -188,7 +199,7 @@ mod tests {
     fn list_new() {
         let list = List::<i32>::new();
         assert!(list.is_empty());
-        assert!(list.head.is_null());
+        assert!(list.first.is_null());
         assert!(list.last.is_null());
         assert_eq!(list.len(), 0);
     }
@@ -251,12 +262,12 @@ mod tests {
         list.push_back(3);
 
         assert_eq!(list.len(), 3);
-        assert!(!list.head.is_null());
+        assert!(!list.first.is_null());
         assert!(!list.last.is_null());
         assert_eq!(list.front(), Some(&1));
         assert_eq!(list.back(), Some(&3));
         unsafe {
-            assert_eq!((*(*list.head).next).value, 2);
+            assert_eq!((*(*list.first).next).value, 2);
         }
     }
 
@@ -358,6 +369,6 @@ mod tests {
         list.pop_front();
         assert_eq!(list.len(), 0);
 
-        assert!(list.head.is_null());
+        assert!(list.first.is_null());
     }
 }
