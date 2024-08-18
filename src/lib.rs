@@ -168,7 +168,7 @@ impl<T> Drop for List<T> {
             }
             self.size -= 1;
         }
-        self.last = ptr::null_mut();
+        //self.last = ptr::null_mut();
     }
 }
 
@@ -341,7 +341,6 @@ mod tests {
 
         assert_eq!(list.pop_back(), None);
     }
-
 
     #[test]
     fn list_drop() {
