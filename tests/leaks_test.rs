@@ -9,4 +9,6 @@ fn leaks_check() {
 
     let item_0 = list.pop_front();
     let item_2 = list.pop_back();
+
+    assert_eq!(list.len(), 1);
 }
