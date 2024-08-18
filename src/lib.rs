@@ -5,8 +5,8 @@ use list_node::Node;
 
 use crate::node_iter::NodeIterator;
 
-mod list_node;
 mod list_iter;
+mod list_node;
 mod node_iter;
 
 pub struct List<T> {
@@ -49,7 +49,8 @@ impl<T> List<T> {
     }
 
     pub fn clear(&mut self) {
-        while !self.first.is_null() {       // self.is_empty()
+        while !self.first.is_null() {
+            // self.is_empty()
             let p_node = self.first;
             unsafe {
                 self.first = (*self.first).next;
@@ -126,9 +127,7 @@ impl<T> List<T> {
         if self.is_empty() {
             return None;
         }
-        let p_node = unsafe {
-            Box::from_raw(self.last)
-        };
+        let p_node = unsafe { Box::from_raw(self.last) };
         self.last = self.pre_last();
         unsafe {
             if !self.last.is_null() {
@@ -211,16 +210,14 @@ mod tests {
     #[test]
     fn list_iter() {
         let mut list = List::new();
-        list.push_back(1);
-        list.push_back(2);
-        list.push_back(3);
+        list.append(vec![1, 2, 3]);
 
         for (i, e) in list.iter().enumerate() {
             match i {
                 0 => assert_eq!(e, &1),
                 1 => assert_eq!(e, &2),
                 2 => assert_eq!(e, &3),
-                _ => ()
+                _ => (),
             }
         }
     }
@@ -228,9 +225,7 @@ mod tests {
     #[test]
     fn list_get() {
         let mut list = List::new();
-        list.push_back(1);
-        list.push_back(2);
-        list.push_back(3);
+        list.append(vec![1, 2, 3]);
 
         assert_eq!(list.get(0), Some(&1));
         assert_eq!(list.get(1), Some(&2));
@@ -241,9 +236,7 @@ mod tests {
     #[test]
     fn list_push_back() {
         let mut list = List::new();
-        list.push_back(1);
-        list.push_back(2);
-        list.push_back(3);
+        list.append(vec![1, 2, 3]);
 
         assert_eq!(list.len(), 3);
         assert!(!list.first.is_null());
@@ -280,9 +273,7 @@ mod tests {
         let mut list = List::new();
         assert_eq!(list.pop_front(), None);
 
-        list.push_back(1);
-        list.push_back(2);
-        list.push_back(3);
+        list.append(vec![1, 2, 3]);
 
         assert_eq!(list.len(), 3);
         assert_eq!(list.front(), Some(&1));
@@ -311,9 +302,7 @@ mod tests {
         let mut list = List::new();
         assert_eq!(list.pop_back(), None);
 
-        list.push_back(1);
-        list.push_back(2);
-        list.push_back(3);
+        list.append(vec![1, 2, 3]);
 
         assert_eq!(list.len(), 3);
         assert_eq!(list.front(), Some(&1));
@@ -350,9 +339,7 @@ mod tests {
     #[test]
     fn list_drop() {
         let mut list = List::new();
-        list.push_back(1);
-        list.push_back(2);
-        list.push_back(3);
+        list.append(vec![1, 2, 3]);
 
         assert_eq!(list.len(), 3);
 
